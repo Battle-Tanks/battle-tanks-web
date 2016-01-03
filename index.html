@@ -1,0 +1,33 @@
+<html lang="en" ng-app="game-app">
+<head>
+
+
+<script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
+<!-- Angular -->
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/angular-animate/angular-animate.js"></script>
+<!--controllers-->
+<script src="js/controllers.js"></script>
+<!-- End Angular -->
+
+<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css" />
+
+<script type="text/javascript" src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Parse -->
+<script src="https://www.parsecdn.com/js/parse-1.6.7.min.js"></script>
+<!-- End Parse -->
+
+<!-- Pusher -->
+<script src="//js.pusher.com/3.0/pusher.min.js"></script>
+<!-- End Pusher -->
+
+</head>
+
+<body data-ng-controller="GameCenter">
+	<h3>Join the game by entering the game code below.</h3>
+	<input type="text" ng-model="gameIdInput" placeholder="Game code">
+	<input type="text" ng-model="nameInput" placeholder="Name">
+	<button ng-click="joinGame()">Join</button>
+</body>
+</html>
