@@ -4,18 +4,31 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pusherCenter', funct
 	$scope.gameIdInput = '';
 	$scope.nameInput = '';
 
+	$scope.joiningGame = false;
+
+	$scope.gameJoinScreenShown = true;
+	$scope.playerWaitScreenShown = false;
+
+	$scope.numPlayers = 0;
+
 	$scope.joinGame = function() {
 		if ($scope.gameIdInput.length > 0 && $scope.nameInput.length > 0){
 			var gameObj;
+			
+			$scope.joiningGame = true;
 
 			$parseCenter.locateGame($scope.gameIdInput).then(function(gameO){
 				gameObj = gameO;
 				return $parseCenter.addPlayerToGame($scope.nameInput, gameObj);
 			}).then(function(playerObj){
-				console.log(playerObj);
+				$scope.gameJoinScreenShown = false;
+				$scope.playerWaitScreenShown = true;
 				$pusherCenter.subscribeToChannel(gameObj.get("channelName"), playerObj.get("name"), playerObj.id);
+				$pusherCenter.bindToPlayerConnectionEvent(playerAdded);
+				$scope.$apply();
 			}, function(error){
 				alert(error.message);
+				$scope.joiningGame = false;
 			});
 		}
 		else if($scope.gameIdInput.length == 0){
@@ -25,12 +38,18 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pusherCenter', funct
 			alert("Please enter a name.");
 		}
 	}
+
+	playerAdded = function(player){
+		$scope.numPlayers = $pusherCenter.playersConnected();
+		$scope.$apply();
+	}
+
 }]);
 
 gameApp.factory('parseCenter', ['$q', function ($q) {
 	var service = {};
 	
-	Parse.initialize("Ue39jG8J5QMXZxdoaeuwjCcT0dwBHlvxufvXN8bo", "f7IlXuXGbwUzBJp8L4Zm9huQaFjEvCTHyKMfqD7K");
+	Parse.initialize("2MBFKOLhG48cWHDkvPK6cxMYOIAOnzQEUTDIxiJf", "TG3FXGzC6LpXmN2TkGh0Tad7gRgDd9XpWIkDLbb4");
 
 	service.locateGame = function(gameId){
 		return service.callCloudFunction('locateGame',{readableId:gameId});
@@ -55,10 +74,12 @@ gameApp.factory('pusherCenter', [function () {
 
 	var pusher;
 	var channel;
+	var playerId;
 
 	service.subscribeToChannel = function(channelId, name, userId){
-		pusher = new Pusher('960f2191f4ad2de45745', {
-			authEndpoint: 'https://pyramid.parseapp.com/pusher/auth',
+		playerId = userId;
+		pusher = new Pusher('22228a560a162feb172a', {
+			authEndpoint: 'https://battle-tanks.parseapp.com/pusher/auth',
 			auth: {
 				params: {
 					user_name: name,
@@ -69,7 +90,18 @@ gameApp.factory('pusherCenter', [function () {
 		channel = pusher.subscribe(channelId);
 	}
 
-	
+	service.playersConnected = function(){
+		return channel.members.count;
+	}
+
+	service.bindToPlayerConnectionEvent = function(receivingFunction){
+		channel.bind('pusher:member_added', receivingFunction);
+		channel.bind('pusher:subscription_succeeded', receivingFunction);
+	}
+
+	service.publishMovementEvent = function(direction){
+		channel.trigger('client-movement-event', {message : direction, client: playerId})
+	}
 
 	return service;
 }])

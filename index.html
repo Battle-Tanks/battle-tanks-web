@@ -8,6 +8,7 @@
 <script src="bower_components/angular-animate/angular-animate.js"></script>
 <!--controllers-->
 <script src="js/controllers.js"></script>
+<script src="js/directives.js"></script>
 <!-- End Angular -->
 
 <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css" />
@@ -25,9 +26,17 @@
 </head>
 
 <body data-ng-controller="GameCenter">
-	<h3>Join the game by entering the game code below.</h3>
-	<input type="text" ng-model="gameIdInput" placeholder="Game code">
-	<input type="text" ng-model="nameInput" placeholder="Name">
-	<button ng-click="joinGame()">Join</button>
+	<div ng-show="gameJoinScreenShown">
+		<h3>Join the game by entering the game code below.</h3>
+		<input type="text" ng-model="gameIdInput" placeholder="Game code">
+		<input type="text" ng-model="nameInput" placeholder="Name">
+		<button ng-click="joinGame()" ng-disabled="joiningGame">Join</button>
+	</div>
+	<div ng-show="playerWaitScreenShown">
+		<h3 ng-show="numPlayers <= 2">Waiting for more players.</h3>
+		<h3 ng-hide="numPlayers <= 2">Waiting for more players.  Press Start Game when everyone has joined.</h3>
+		<button ng-click="startGame()" ng-disabled="numPlayers <= 2">Start Game</button>
+		<gamepad></gamepad>
+	</div>
 </body>
 </html>
