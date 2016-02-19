@@ -1,5 +1,10 @@
 var gameApp = angular.module('game-app', ['ngAnimate']);
 
+//attach fastclick
+$(function() {
+    FastClick.attach(document.body);
+});
+
 gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pusherCenter', function ($scope, $parseCenter, $pusherCenter){
 	$scope.gameIdInput = '';
 	$scope.nameInput = '';
@@ -37,6 +42,10 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pusherCenter', funct
 		else{
 			alert("Please enter a name.");
 		}
+	}
+
+	$scope.clickOrTouch = function(direction) {
+		console.log(direction);
 	}
 
 	playerAdded = function(player){

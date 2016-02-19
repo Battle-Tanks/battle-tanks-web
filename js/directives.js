@@ -2,28 +2,16 @@ gameApp.directive('gamepad', ['$interval', 'pusherCenter', function ($interval, 
    return {
       templateUrl: 'gamepad.html',
       restrict: 'E',
-      scope: {
-        Time: '=value'
-      },
       link: function (scope, element, attrs) {
         element.addClass('gamepad');
 
-        var promise;      
-        scope.mouseDown = function(dir) {
-          promise = $interval(function () { 
-            if (dir === "up"){
-              $pusherCenter.publishMovementEvent(dir);
-            }
-            else{
-              console.log("down")
-            }
-          }, 100);
+        element.on('touchstart', function(event){
+          console.log(event);
+        });
 
-        };
-
-        scope.mouseUp = function () {
-           $interval.cancel(promise);
-        };
+        element.on('touchend', function(event){
+          console.log(event);
+        })
     }
   };
 }]);
