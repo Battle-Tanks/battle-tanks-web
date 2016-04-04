@@ -6,11 +6,11 @@ gameApp.directive('gamepad', ['$interval', 'pusherCenter', function ($interval, 
         element.addClass('gamepad');
 
         element.on('touchstart', function(event){
-          console.log(event);
+          console.log(attrs);
         });
 
         element.on('touchend', function(event){
-          console.log(event);
+          console.log(element);
         })
     }
   };
