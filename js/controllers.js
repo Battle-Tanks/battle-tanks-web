@@ -14,13 +14,11 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pubnubCenter', funct
 		JOINING : 1,
 		CONNECTING : 2,
 		INGAME : 3,
-		WAITING : 4,
-		ERRORED : 5
+		INHAND : 4,
+		WAITING : 5,
+		ERRORED : 6
 	}
-
 	$scope.status = GAME_STATUS.PREJOIN
-
-	$scope.chips = 0;
 
 	//annoying angular scope ng-show variables
 	$scope.joinScreenShown = function(){return $scope.status == GAME_STATUS.PREJOIN || $scope.status == GAME_STATUS.JOINING};
@@ -28,6 +26,43 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pubnubCenter', funct
 	$scope.findingSeat = function(){return $scope.status == GAME_STATUS.CONNECTING};
 	$scope.waitingForSeat = function(){return $scope.status == GAME_STATUS.WAITING};
 	$scope.inGame = function(){return $scope.status ==  GAME_STATUS.INGAME};
+	$scope.inHand = function(){return $scope.status == GAME_STATUS.INHAND};
+
+	BET_OPTIONS = {
+		CHECK : 0,
+		FOLD : 1,
+		ALLIN : 2,
+		RAISE : 3,
+		BET : 4
+	}
+	$scope.options = []
+
+	//same for BET_OPTIONS
+	$scope.checkShown = function(){console.log($scope.options.indexOf(BET_OPTIONS.CHECK));return $scope.options.indexOf(BET_OPTIONS.CHECK) > -1};
+	$scope.foldShown = function(){return $scope.options.indexOf(BET_OPTIONS.FOLD) > -1};
+	$scope.allinShown = function(){return $scope.options.indexOf(BET_OPTIONS.ALLIN) > -1};
+	$scope.raiseShown = function(){return $scope.options.indexOf(BET_OPTIONS.RAISE) > -1};
+	$scope.betShown = function(){return $scope.options.indexOf(BET_OPTIONS.BET) > -1};
+
+	var playerId;
+
+	
+
+	$scope.chips = 0;
+
+	$scope.cardsHidden = false
+
+	var card_asset_location = 'assets/cards/'
+	var card1Val = 'back'
+	var card2Val = 'back'
+	$scope.card1 = function(){
+		var resolvedValue = $scope.cardsHidden ? 'back' : card1Val
+		return card_asset_location + resolvedValue + '.png'
+	}
+	$scope.card2 = function(){
+		var resolvedValue = $scope.cardsHidden ? 'back' : card2Val
+		return card_asset_location + resolvedValue + '.png'
+	}
 
 
 	$scope.joinGame = function() {
@@ -39,7 +74,8 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pubnubCenter', funct
 				gameObj = gameO;
 				return $parseCenter.addPlayerToGame($scope.nameInput, gameObj);
 			}).then(function(playerObj){
-				$scope.status = GAME_STATUS.CONNECTING
+				playerId = playerObj.id;
+				$scope.status = GAME_STATUS.CONNECTING;
 				$pubnubCenter.subscribeToChannel(gameObj.get("channelName"), playerObj.get("name"), playerObj.id, stateChanged);
 				$scope.$apply();
 			}, function(error){
@@ -60,16 +96,30 @@ gameApp.controller('GameCenter', ['$scope', 'parseCenter', 'pubnubCenter', funct
 	}
 
 	stateChanged = function(m){
-		if (m.action == "state-change"){
+		if (m.action == "state-change" && m.uuid == playerId){
 			//is this a game status change?
 			console.log(m);
 			if (m.data && m.data.GAME_STATUS){
 				$scope.status = GAME_STATUS[m.data.GAME_STATUS]
-				$scope.$apply()
+				$scope.$apply();
 			}
 			if (m.data && m.data.CHIPS){
 				$scope.chips = m.data.CHIPS
-				$scope.$apply()
+				$scope.$apply();
+			}
+			if (m.data && m.data.HAND){
+				card1Val = m.data.HAND[0];
+				card2Val = m.data.HAND[1];
+				$scope.$apply();
+			}
+			if (m.data && m.data.BET_OPTIONS){
+				$scope.options = []
+				for (var i = 0; i < m.data.BET_OPTIONS.length; i++) {
+					var option = m.data.BET_OPTIONS[i]
+					$scope.options.push(BET_OPTIONS[option]);
+				};
+				console.log($scope.options);
+				$scope.$apply();
 			}
 		}
 	}
